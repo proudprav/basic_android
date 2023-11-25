@@ -44,9 +44,7 @@ import com.example.myapplication.response.TriggerCapture
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import okhttp3.MediaType
-import okhttp3.MediaType.Companion.get
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
@@ -64,6 +62,9 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale.getDefault
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
+import kotlin.collections.set
 
 
 class MainActivity : ComponentActivity() {
@@ -161,6 +162,14 @@ class MainActivity : ComponentActivity() {
 
 
             val file = getFileFromVideoUri1(this@MainActivity, data?.data!!)
+            val lastIndex = file.toString().split(".").last()
+            val removeSuffix = file.toString().removeSuffix(lastIndex)
+            val removelast = file.toString().split("/").last()
+            val removeSuffix1 = removelast.removeSuffix(".mp4")
+            val fileName = file.toString().removeSuffix(removelast)
+            val zipManager = ZipManager()
+            ZipManager.zip(file.toString(), "${removeSuffix}zip")
+            val newZip = "${removeSuffix}zip"
 //            val file4 = File(file)
 //            val file = getFileFromContentUri(this@MainActivity,(data?.data!!), false)
 //            val file = createVideoOutputPath(this@MainActivity, data?.data!!)
@@ -168,11 +177,11 @@ class MainActivity : ComponentActivity() {
 //            val file = File("/data/user/0/com.example.myapplication/cache/20230702_170821.mp4")
             val MEDIA_TYPE: MediaType = "text/plain".toMediaType()
 
-            val requestFile = RequestBody.create(MEDIA_TYPE, file!!)
+            val requestFile = RequestBody.create(MEDIA_TYPE, newZip)
 // MultipartBody.Part is used to send also the actual file name
 
 // MultipartBody.Part is used to send also the actual file name
-            val body = MultipartBody.Part.createFormData("file", file?.name, requestFile)
+            val body = MultipartBody.Part.createFormData("file", "${removeSuffix1}.zip", requestFile)
 
             extracted(this, body)
         }
@@ -593,8 +602,24 @@ fun getFileFromVideoUri1(context: Context, videoUri: Uri): File? {
         val videoFileName = getFileName(context, videoUri)
         val cacheDir = context.cacheDir
         videoFile = File(cacheDir, videoFileName)
+//        val fos = FileOutputStream("${videoFileName}.zip")
 
+//        val zos = ZipOutputStream(fos)
+//        try {
+//            val zipEntry = ZipEntry(videoFile.toString())
+//            zos.putNextEntry(zipEntry)
+//            // write any content you like
+//            zos.write("file content".toByteArray())
+//            zos.closeEntry()
+//        } catch (e: java.lang.Exception) {
+//            // unable to write zip
+//        } finally {
+//            zos.close()
+//        }
         inputStream = contentResolver.openInputStream(videoUri)
+
+
+
         outputStream = FileOutputStream(videoFile)
 
         val bufferSize = 1024
